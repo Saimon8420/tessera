@@ -1,0 +1,35 @@
+{
+  "name": "tessera",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "license": "MIT",
+  "description": "Free public geospatial geometry API — measure, distance, buffer, overlay, relate, hull, simplify & interpolate GeoJSON. Powered by Turf.js.",
+  "main": "src/server.ts",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc -p tsconfig.json",
+    "bundle": "node esbuild.config.mjs",
+    "vercel-build": "npm run bundle",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@turf/turf": "^7.2.0",
+    "@upstash/ratelimit": "^2.0.5",
+    "@upstash/redis": "^1.34.3",
+    "express": "^5.1.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.0",
+    "@types/supertest": "^6.0.2",
+    "esbuild": "^0.24.2",
+    "supertest": "^7.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
