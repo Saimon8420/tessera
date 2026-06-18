@@ -3,7 +3,7 @@ import { z } from "zod";
 import { area, length, centroid, centerOfMass, bbox, pointOnFeature } from "@turf/turf";
 import { validateBody } from "../middleware/validate";
 import { geojsonSchema, unitEnum } from "../schemas/common";
-import { asGeoJSON, runTurf, geomType } from "../lib/geojson";
+import { asGeoJSON, runTurf, geomType, assertCoordsInRange } from "../lib/geojson";
 import { ok, round } from "../lib/format";
 
 const body = z.object({
@@ -15,6 +15,7 @@ export const measure = Router();
 measure.post("/", validateBody(body), (_req, res) => {
   const b = res.locals.body;
   const g = asGeoJSON(b.geojson);
+  assertCoordsInRange(g);
   const units = b.options.units;
   const t = geomType(g);
   const isArealOrLinear = ["Polygon", "MultiPolygon", "LineString", "MultiLineString"].includes(t);

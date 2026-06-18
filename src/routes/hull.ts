@@ -3,7 +3,7 @@ import { z } from "zod";
 import { convex, concave, featureCollection, point as turfPoint } from "@turf/turf";
 import { validateBody } from "../middleware/validate";
 import { geojsonSchema, unitEnum } from "../schemas/common";
-import { runTurf } from "../lib/geojson";
+import { runTurf, assertCoordsInRange } from "../lib/geojson";
 import { ApiError } from "../middleware/errorHandler";
 import { ok } from "../lib/format";
 
@@ -27,6 +27,7 @@ hull.post("/", validateBody(body), (_req, res) => {
   if (Array.isArray(b.points) && b.points.length < 3) {
     throw new ApiError("VALIDATION_ERROR", "At least 3 points are required for a hull", 400);
   }
+  assertCoordsInRange(fc as any);
   const out =
     b.op === "concave"
       ? runTurf(() => concave(fc as any, { units: b.options.units, maxEdge: b.options.maxEdge ?? Infinity }))

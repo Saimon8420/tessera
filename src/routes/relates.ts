@@ -6,7 +6,7 @@ import {
 } from "@turf/turf";
 import { validateBody } from "../middleware/validate";
 import { geojsonSchema } from "../schemas/common";
-import { asGeoJSON, geomType } from "../lib/geojson";
+import { asGeoJSON, geomType, assertCoordsInRange } from "../lib/geojson";
 import { ok } from "../lib/format";
 
 const OPS = [
@@ -36,6 +36,7 @@ export const relates = Router();
 relates.post("/", validateBody(body), (_req, res) => {
   const b = res.locals.body;
   const a = asGeoJSON(b.a), bb = asGeoJSON(b.b);
+  assertCoordsInRange(a); assertCoordsInRange(bb);
 
   if (b.op) {
     const result =

@@ -6,7 +6,7 @@ import {
 } from "@turf/turf";
 import { validateBody } from "../middleware/validate";
 import { unitEnum, pointInput, geojsonSchema } from "../schemas/common";
-import { runTurf } from "../lib/geojson";
+import { runTurf, assertPointInputInRange, assertCoordsInRange } from "../lib/geojson";
 import { ApiError } from "../middleware/errorHandler";
 import { ok, round } from "../lib/format";
 
@@ -37,8 +37,8 @@ distance.post("/", validateBody(body), (_req, res) => {
   let data: unknown;
 
   if (b.op === "between") {
-    const from = toPoint(need(b.from, "from"));
-    const to = toPoint(need(b.to, "to"));
+    const fromRaw = need(b.from, "from"); assertPointInputInRange(fromRaw); const from = toPoint(fromRaw);
+    const toRaw = need(b.to, "to"); assertPointInputInRange(toRaw); const to = toPoint(toRaw);
     data = runTurf(() => ({
       distance: round(turfDistance(from, to, { units }), 6),
       units,
@@ -46,19 +46,21 @@ distance.post("/", validateBody(body), (_req, res) => {
       midpoint: midpoint(from, to),
     }));
   } else if (b.op === "destination") {
-    const from = toPoint(need(b.from, "from"));
+    const fromRaw = need(b.from, "from"); assertPointInputInRange(fromRaw); const from = toPoint(fromRaw);
     const dist = need(b.distance, "distance") as number;
     const brg = need(b.bearing, "bearing") as number;
     data = runTurf(() => destination(from, dist, brg, { units }));
   } else if (b.op === "along") {
     const line = need(b.line, "line");
+    assertCoordsInRange(line);
     const dist = need(b.distance, "distance") as number;
     data = runTurf(() => along(line as any, dist, { units }));
   } else {
     // nearest
-    const p = toPoint(need(b.point, "point"));
+    const pointRaw = need(b.point, "point"); assertPointInputInRange(pointRaw); const p = toPoint(pointRaw);
     const rawPts = need(b.points, "points") as any[];
     const fc = runTurf(() => featureCollection(rawPts.map((x) => toPoint(x))));
+    assertCoordsInRange(fc);
     const np = runTurf(() => nearestPoint(p, fc as any));
     data = {
       nearest: np,

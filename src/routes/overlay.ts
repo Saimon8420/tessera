@@ -3,7 +3,7 @@ import { z } from "zod";
 import { union, intersect, difference, bboxClip, featureCollection } from "@turf/turf";
 import { validateBody } from "../middleware/validate";
 import { geojsonSchema } from "../schemas/common";
-import { asGeoJSON, runTurf, requireTypes } from "../lib/geojson";
+import { asGeoJSON, runTurf, requireTypes, assertCoordsInRange, assertBboxInRange } from "../lib/geojson";
 import { ApiError } from "../middleware/errorHandler";
 import { ok } from "../lib/format";
 
@@ -22,10 +22,12 @@ overlay.post("/", validateBody(body), (_req, res) => {
   const b = res.locals.body;
   const a = asGeoJSON(b.a);
   requireTypes(a, POLY, "a");
+  assertCoordsInRange(a);
 
   let out: unknown;
   if (b.op === "bbox-clip") {
     if (!b.bbox) throw new ApiError("VALIDATION_ERROR", "bbox is required for bbox-clip", 400);
+    assertBboxInRange(b.bbox);
     out = runTurf(() => bboxClip(a as any, b.bbox));
     const c = (out as any)?.geometry?.coordinates;
     if (Array.isArray(c) && c.length === 0) {
@@ -35,6 +37,7 @@ overlay.post("/", validateBody(body), (_req, res) => {
     if (!b.b) throw new ApiError("VALIDATION_ERROR", "`b` polygon is required for this op", 400);
     const bb = asGeoJSON(b.b);
     requireTypes(bb, POLY, "b");
+    assertCoordsInRange(bb);
     const fc = runTurf(() => featureCollection([toFeature(a), toFeature(bb)]));
     out =
       b.op === "union" ? runTurf(() => union(fc as any))

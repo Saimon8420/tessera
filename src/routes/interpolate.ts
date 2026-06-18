@@ -3,7 +3,7 @@ import { z } from "zod";
 import { tin, voronoi, isolines, interpolate as idw, featureCollection, point as turfPoint, bbox as turfBbox, distance as turfDistanceFn } from "@turf/turf";
 import { validateBody } from "../middleware/validate";
 import { geojsonSchema, unitEnum } from "../schemas/common";
-import { runTurf } from "../lib/geojson";
+import { runTurf, assertCoordsInRange, assertBboxInRange } from "../lib/geojson";
 import { ApiError } from "../middleware/errorHandler";
 import { ok } from "../lib/format";
 
@@ -48,6 +48,8 @@ interpolate.post("/", validateBody(body), (_req, res) => {
   const fc = Array.isArray(b.points)
     ? runTurf(() => featureCollection(b.points.map((p: number[]) => turfPoint(p))))
     : (b.points as any);
+  assertCoordsInRange(fc as any);
+  if (o.bbox) assertBboxInRange(o.bbox);
 
   let out: unknown;
   if (b.method === "tin") {

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { simplify as turfSimplify, cleanCoords, coordAll } from "@turf/turf";
 import { validateBody } from "../middleware/validate";
 import { geojsonSchema } from "../schemas/common";
-import { asGeoJSON, runTurf } from "../lib/geojson";
+import { asGeoJSON, runTurf, assertCoordsInRange } from "../lib/geojson";
 import { ok } from "../lib/format";
 
 const body = z.object({
@@ -18,6 +18,7 @@ export const simplify = Router();
 simplify.post("/", validateBody(body), (_req, res) => {
   const b = res.locals.body;
   const g = asGeoJSON(b.geojson);
+  assertCoordsInRange(g);
   const data = runTurf(() => {
     const before = coordAll(g as any).length;
     const cleaned = cleanCoords(g as any);
